@@ -3,7 +3,7 @@ version: "3"
 services:
   mc:
     image: itzg/minecraft-server
-    container_name: "minecraft" 
+    container_name: minecraft 
     stdin_open: true
     tty: true
     restart: always
@@ -21,7 +21,7 @@ services:
 
   # rcon:
   #   image: itzg/rcon
-  #   container_name: "rcon"
+  #   container_name: rcon
   #   ports:
   #     - 25575:25575
   #   environment:
@@ -29,29 +29,33 @@ services:
   #   links:
   #     - mc
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    restart: always
+    networks:
+      - mc_network  
+
   prometheus:
     image: prom/prometheus
-    container_name: "proemtheus" 
+    container_name: prometheus
     restart: always
-    ports:
-      - 9090:9090
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus:/prometheus
     command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.path=/prometheus
-      - --storage.tsdb.retention.time=30d
-      - --storage.tsdb.retention.size=2GB
-      - --web.console.libraries=/usr/share/prometheus/console_libraries
-      - --web.console.templates=/usr/share/proemtheus/consoles
-      - --web.enable-admin-api
+      - '--config.file=/etc/prometheus/prometheus.yml'
     networks:
       - mc_network
 
   grafana:
     image: grafana/grafana
-    container_name: "grafana"
+    container_name: grafana
     restart: always
     ports:
       - 3000:3000
@@ -61,12 +65,14 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_sUSERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
     networks:
       - mc_network
 
   caddy:
     image: abiosoft/caddy
-    container_name: "caddy"
+    container_name: caddy
     ports:
       - '80:80'
       - '443:443'

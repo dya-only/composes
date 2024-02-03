@@ -1,11 +1,11 @@
 global:
-  scrape_interval: 5s
-  evaluation_interval: 5s
+  scrape_interval: 15s 
 
-rule_files:
-  - 'prometheus.rules.yml'
+  external_labels:
+    monitor: 'mc-monitor'
 
 scrape_configs:
-  - job_name: 'minecraft'
+  - job_name: 'cAdvisor'
+    scrape_interval: 5s
     static_configs:
-      - targets: ['minecraft:9225']
+    - targets: ['cadvisor:8080']
