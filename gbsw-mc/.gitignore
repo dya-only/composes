@@ -1,0 +1,5 @@
+.caddy/
+.Caddyfile/
+grafana/
+minecraft/
+prometheus/

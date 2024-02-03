@@ -1,0 +1,82 @@
+version: "3"
+
+services:
+  mc:
+    image: itzg/minecraft-server
+    container_name: "minecraft" 
+    stdin_open: true
+    tty: true
+    restart: always
+    ports:
+      - 25565:25565
+      - 9225:9225
+    volumes:
+      - ./minecraft:/data
+    environment:
+      - EULA=true
+      - MEMORY=2G
+      - TYPE=PAPER
+      - SPIGET_RESOURCES=36618 
+      - VERSION=1.20.4
+
+  # rcon:
+  #   image: itzg/rcon
+  #   container_name: "rcon"
+  #   ports:
+  #     - 25575:25575
+  #   environment:
+  #     - RWA_PASSWORD=admin
+  #   links:
+  #     - mc
+
+  prometheus:
+    image: prom/prometheus
+    container_name: "proemtheus" 
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --storage.tsdb.retention.size=2GB
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/proemtheus/consoles
+      - --web.enable-admin-api
+    networks:
+      - mc_network
+
+  grafana:
+    image: grafana/grafana
+    container_name: "grafana"
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_sUSERS_ALLOW_SIGN_UP=false
+    networks:
+      - mc_network
+
+  caddy:
+    image: abiosoft/caddy
+    container_name: "caddy"
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/Caddyfile
+      - .caddy:/root/.caddy
+    restart: always
+    networks:
+      - mc_network 
+
+networks:
+  mc_network:
+    external: true
