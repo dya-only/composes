@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    image: ghost:latest
+    restart: always
+    ports:
+      - 2368:2368
+    environment:
+      - database__client=mysql
+      - database__connection__host=db
+      - database__connection__user=ghost
+      - database__connection__password=ghost
+      - database__connection__database=ghost
+      - mail__transport=SMTP
+      - mail__options__service=SMTP
+      - mail__from=dyacode@proton.me
+      - mail__options__port=587
+      - mail__options__auth__user=dyacode@proton.me
+      - mail__options__auth__pass=ghostpassword
+    volumes:
+      - ./ghost:/var/lib/ghost/content
+
+  db:
+    image: mysql:8.0
+    restart: always
+    expose:
+      - 3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=ghost
+      - MYSQL_DATABASE=ghost
+      - MYSQL_USER=ghost
+      - MYSQL_PASSWORD=ghost
+    volumes:
+      - ./db:/var/lib/mysql
