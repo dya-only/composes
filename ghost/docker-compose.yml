@@ -18,8 +18,11 @@ services:
       - mail__options__port=587
       - mail__options__auth__user=dyacode@proton.me
       - mail__options__auth__pass=ghostpassword
+      - url=http://192.168.35.79:2368
     volumes:
       - ./ghost:/var/lib/ghost/content
+    depends_on:
+      - db
 
   db:
     image: mysql:8.0
@@ -33,3 +36,14 @@ services:
       - MYSQL_PASSWORD=ghost
     volumes:
       - ./db:/var/lib/mysql
+
+  caddy:
+    image: caddy:2.7.6-alpine
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./.caddy:/root/.caddy
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - app
